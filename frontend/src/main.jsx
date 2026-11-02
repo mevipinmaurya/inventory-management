@@ -3,7 +3,8 @@ import { createRoot } from 'react-dom/client';
 import { Boxes, LayoutDashboard, Package, ShoppingCart, LogOut, Search, Plus, RefreshCw, AlertTriangle, TrendingUp, Users, X, Check, Pencil, Trash2, ArrowUpRight, Menu } from 'lucide-react';
 import './style.css';
 
-const API = 'http://localhost:8080/api';
+const API = import.meta.env.VITE_API_BASE_URL;
+console.log(API)
 const readSession = () => { try { return JSON.parse(localStorage.getItem('stockpilot_session') || 'null'); } catch { return null; } };
 async function api(path, options = {}) {
   const session = readSession();
