@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import com.inventory.auth.AppUser;
 
 @Entity
 @Table(name = "orders")
@@ -25,6 +26,11 @@ public class CustomerOrder {
 
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    // Nullable for safe schema migration; every new order is assigned an owner.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id")
+    private AppUser owner;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
@@ -48,8 +54,10 @@ public class CustomerOrder {
     public OrderStatus getStatus() { return status; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public List<OrderItem> getItems() { return items; }
+    public AppUser getOwner() { return owner; }
 
     public void setCustomerName(String customerName) { this.customerName = customerName; }
     public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
     public void setStatus(OrderStatus status) { this.status = status; }
+    public void setOwner(AppUser owner) { this.owner = owner; }
 }

@@ -2,6 +2,7 @@ package com.inventory.entity;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import com.inventory.auth.AppUser;
 
 @Entity
 @Table(name = "products")
@@ -25,6 +26,11 @@ public class Product {
     @Column(nullable = false)
     private boolean active = true;
 
+    // Nullable only to allow existing database rows to migrate safely; new products always get an owner.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id")
+    private AppUser owner;
+
     public Product() {}
 
     public Product(String name, String category, BigDecimal price, int quantity) {
@@ -41,10 +47,12 @@ public class Product {
     public BigDecimal getPrice() { return price; }
     public int getQuantity() { return quantity; }
     public boolean isActive() { return active; }
+    public AppUser getOwner() { return owner; }
 
     public void setName(String name) { this.name = name; }
     public void setCategory(String category) { this.category = category; }
     public void setPrice(BigDecimal price) { this.price = price; }
     public void setQuantity(int quantity) { this.quantity = quantity; }
     public void setActive(boolean active) { this.active = active; }
+    public void setOwner(AppUser owner) { this.owner = owner; }
 }
