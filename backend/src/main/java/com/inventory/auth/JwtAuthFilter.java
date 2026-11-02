@@ -12,7 +12,8 @@ import java.io.IOException;
 import java.util.List;
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
-    private final JwtService jwt; private final AppUserRepository users;
+    private final JwtService jwt;
+    private final AppUserRepository users;
     public JwtAuthFilter(JwtService jwt, AppUserRepository users){this.jwt=jwt;this.users=users;}
     @Override protected void doFilterInternal(HttpServletRequest request,HttpServletResponse response,FilterChain chain) throws ServletException,IOException {
         String h=request.getHeader("Authorization");
