@@ -7,3 +7,5 @@ frontend/dist/
 # Local secrets
 .env
 **/application.properties
+
+**/application.properties
