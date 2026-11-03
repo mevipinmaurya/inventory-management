@@ -71,11 +71,10 @@ async function api(path, options = {}) {
     });
 
   } catch (error) {
-
+    console.error('API network/CORS error:', error);
     throw new Error(
-      'Unable to connect to server. Please check your internet connection or backend CORS configuration.'
+      `Could not reach the backend at ${API}. Check that the Render service is running and FRONTEND_URLS on Render includes this exact Vercel origin.`
     );
-
   }
 
   if (response.status === 204) {
@@ -99,7 +98,7 @@ async function api(path, options = {}) {
       data?.detail ||
       (typeof data === 'string'
         ? data
-        : `Request failed (${response.status})`)
+        : `Request failed (${response.status} ${response.statusText})`)
     );
 
   }

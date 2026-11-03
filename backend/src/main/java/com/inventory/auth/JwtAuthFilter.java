@@ -25,15 +25,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         this.users = users;
     }
 
-    // Skip JWT filtering for public authentication and CORS preflight requests
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-
         String path = request.getServletPath();
-
-        return request.getMethod().equalsIgnoreCase("OPTIONS")
-                || path.equals("/api/auth/login")
-                || path.equals("/api/auth/signup");
+        return "OPTIONS".equalsIgnoreCase(request.getMethod())
+                || "/api/auth/login".equals(path)
+                || "/api/auth/signup".equals(path);
     }
 
     @Override
@@ -43,46 +40,27 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             FilterChain chain
     ) throws ServletException, IOException {
 
-        String authorizationHeader = request.getHeader("Authorization");
+        String header = request.getHeader("Authorization");
 
-        if (authorizationHeader != null
-                && authorizationHeader.startsWith("Bearer ")
+        if (header != null && header.startsWith("Bearer ")
                 && SecurityContextHolder.getContext().getAuthentication() == null) {
-
-            String token = authorizationHeader.substring(7);
-
+            String token = header.substring(7).trim();
             try {
                 String email = jwt.extractEmail(token);
-
                 if (email != null && !email.isBlank()) {
-
-                    AppUser user = users.findByEmailIgnoreCase(email)
-                            .orElse(null);
-
+                    AppUser user = users.findByEmailIgnoreCase(email).orElse(null);
                     if (user != null) {
-
-                        var authorities = List.of(
-                                new SimpleGrantedAuthority(
-                                        "ROLE_" + user.getRole()
-                                )
+                        var authentication = new UsernamePasswordAuthenticationToken(
+                                user.getEmail(),
+                                null,
+                                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole()))
                         );
-
-                        var authentication =
-                                new UsernamePasswordAuthenticationToken(
-                                        user.getEmail(),
-                                        null,
-                                        authorities
-                                );
-
-                        SecurityContextHolder.getContext()
-                                .setAuthentication(authentication);
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
                     }
                 }
-
-            } catch (Exception exception) {
-
-                // Invalid or expired token:
-                // Leave the request unauthenticated.
+            } catch (Exception ignored) {
+                // Invalid/expired tokens remain unauthenticated. Spring Security
+                // then rejects protected endpoints; public auth endpoints still work.
                 SecurityContextHolder.clearContext();
             }
         }
