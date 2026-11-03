@@ -89,7 +89,7 @@ public class SecurityConfig {
 
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:5173",
-                "https://inventory-management-abc.vercel.app"
+                "https://inventory-management-k11fmpbhh-inventory-management8.vercel.app"
         ));
 
         configuration.setAllowedMethods(List.of(
