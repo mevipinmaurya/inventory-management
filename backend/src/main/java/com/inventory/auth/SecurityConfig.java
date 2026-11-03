@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -20,60 +21,78 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain filterChain(
+    SecurityFilterChain filterChain(
             HttpSecurity http,
-            JwtAuthFilter jwtFilter) throws Exception {
+            JwtAuthFilter jwtFilter
+    ) throws Exception {
 
         return http
+
                 .csrf(csrf -> csrf.disable())
+
                 .cors(Customizer.withDefaults())
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(
+
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
                         )
                 )
+
                 .authorizeHttpRequests(auth -> auth
+
+                        // Allow CORS preflight requests
+                        .requestMatchers(HttpMethod.OPTIONS, "/**")
+                        .permitAll()
+
+                        // Public authentication endpoints
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/auth/**",
                                 "/error"
                         ).permitAll()
+
+                        // All other endpoints require authentication
                         .anyRequest().authenticated()
                 )
+
                 .addFilterBefore(
                         jwtFilter,
                         UsernamePasswordAuthenticationFilter.class
                 )
+
                 .build();
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
+    PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    public FilterRegistrationBean<JwtAuthFilter> jwtFilterRegistration(
-            JwtAuthFilter filter) {
+    FilterRegistrationBean<JwtAuthFilter> jwtFilterRegistration(
+            JwtAuthFilter filter
+    ) {
 
         FilterRegistrationBean<JwtAuthFilter> registration =
                 new FilterRegistrationBean<>(filter);
 
         registration.setEnabled(false);
+
         return registration;
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfigurationSource corsConfigurationSource() {
 
-        CorsConfiguration config = new CorsConfiguration();
+        CorsConfiguration configuration =
+                new CorsConfiguration();
 
-        config.setAllowedOrigins(List.of(
+        configuration.setAllowedOrigins(List.of(
                 "http://localhost:5173",
-                "https://inventory-management-two-phi-53.vercel.app/"
+                "https://inventory-management-abc.vercel.app"
         ));
 
-        config.setAllowedMethods(List.of(
+        configuration.setAllowedMethods(List.of(
                 "GET",
                 "POST",
                 "PUT",
@@ -82,13 +101,17 @@ public class SecurityConfig {
                 "OPTIONS"
         ));
 
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
+        configuration.setAllowedHeaders(List.of("*"));
+
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
 
-        source.registerCorsConfiguration("/**", config);
+        source.registerCorsConfiguration(
+                "/**",
+                configuration
+        );
 
         return source;
     }
